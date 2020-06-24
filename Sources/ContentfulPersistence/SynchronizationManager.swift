@@ -516,6 +516,8 @@ public class SynchronizationManager: PersistenceIntegration {
             // handle symbol arrays
             if let array = fieldValue as? [Any] {
                 fieldValue = NSKeyedArchiver.archivedData(withRootObject: array)
+            } else if let richText = fieldValue as? RichTextDocument {
+                fieldValue = NSKeyedArchiver.archivedData(withRootObject: richText)
             }
 
             persistable.setValue(fieldValue, forKey: propertyName)
