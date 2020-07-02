@@ -31,7 +31,7 @@ class ComplexSyncTests: XCTestCase {
 
     // Before each test.
     override func setUp() {
-        OHHTTPStubs.removeAllStubs()
+        HTTPStubs.removeAllStubs()
 
         let persistenceModel = PersistenceModel(spaceType: ComplexSyncInfo.self, assetType: ComplexAsset.self, entryTypes: [SingleRecord.self, Link.self, RecordWithNonOptionalRelation.self])
 
@@ -46,14 +46,14 @@ class ComplexSyncTests: XCTestCase {
 
     // After each test.
     override func tearDown() {
-        OHHTTPStubs.removeAllStubs()
+        HTTPStubs.removeAllStubs()
     }
 
     func testUpdatingFieldValueBetweenSyncs() {
 
         let expectation = self.expectation(description: "Initial sync succeeded")
 
-        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> OHHTTPStubsResponse in
+        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> HTTPStubsResponse in
             let urlString = request.url!.absoluteString
             let queryItems = URLComponents(string: urlString)!.queryItems!
             for queryItem in queryItems {
@@ -88,20 +88,20 @@ class ComplexSyncTests: XCTestCase {
                     }
                     expectation.fulfill()
                 }
-            case .error(let error):
+            case .failure(let error):
                 XCTFail("\(error)")
                 expectation.fulfill()
             }
         }
 
         waitForExpectations(timeout: 10.0, handler: nil)
-        OHHTTPStubs.removeAllStubs()
+        HTTPStubs.removeAllStubs()
 
         // ============================NEXT SYNC==================================================
         let nextExpectation = self.expectation(description: "Next sync expectation")
 
-        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> OHHTTPStubsResponse in
-            return OHHTTPStubsResponse(
+        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> HTTPStubsResponse in
+            return HTTPStubsResponse(
                 fileAtPath: OHPathForFile("simple-update-next-sync.json", type(of: self))!,
                 statusCode: 200,
                 headers: ["Content-Type": "application/json"]
@@ -122,7 +122,7 @@ class ComplexSyncTests: XCTestCase {
                     }
                     nextExpectation.fulfill()
                 }
-            case .error(let error):
+            case .failure(let error):
                 XCTFail("\(error)")
                 nextExpectation.fulfill()
             }
@@ -134,7 +134,7 @@ class ComplexSyncTests: XCTestCase {
     func testClearingFieldSetsItToNil() {
         let expectation = self.expectation(description: "Initial sync succeeded")
 
-        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> OHHTTPStubsResponse in
+        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> HTTPStubsResponse in
             let stubPath = OHPathForFile("clear-field-initial-sync.json", ComplexSyncTests.self)
             return fixture(filePath: stubPath!, headers: ["Content-Type": "application/json"])
             }.name = "Initial sync stub"
@@ -159,19 +159,19 @@ class ComplexSyncTests: XCTestCase {
                     expectation.fulfill()
                 }
 
-            case .error(let error):
+            case .failure(let error):
                 XCTFail("\(error)")
                 expectation.fulfill()
             }
         }
 
         waitForExpectations(timeout: 10.0, handler: nil)
-        OHHTTPStubs.removeAllStubs()
+        HTTPStubs.removeAllStubs()
 
         // ============================NEXT SYNC==================================================
         let nextExpectation = self.expectation(description: "Next sync expectation")
 
-        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> OHHTTPStubsResponse in
+        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> HTTPStubsResponse in
             let stubPath = OHPathForFile("clear-field-next-sync.json", ComplexSyncTests.self)
             return fixture(filePath: stubPath!, headers: ["Content-Type": "application/json"])
         }.name = "Next sync: updated value."
@@ -191,7 +191,7 @@ class ComplexSyncTests: XCTestCase {
                     }
                     nextExpectation.fulfill()
                 }
-            case .error(let error):
+            case .failure(let error):
                 XCTFail("\(error)")
                 nextExpectation.fulfill()
             }
@@ -203,7 +203,7 @@ class ComplexSyncTests: XCTestCase {
     func testLinkResolutionForMultipageSync() {
         let expectation = self.expectation(description: "Initial sync succeeded")
 
-        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> OHHTTPStubsResponse in
+        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> HTTPStubsResponse in
             let urlString = request.url!.absoluteString
             let queryItems = URLComponents(string: urlString)!.queryItems!
             for queryItem in queryItems {
@@ -239,7 +239,7 @@ class ComplexSyncTests: XCTestCase {
                     }
                     expectation.fulfill()
                 }
-            case .error(let error):
+            case .failure(let error):
                 XCTFail("\(error)")
                 expectation.fulfill()
             }
@@ -251,7 +251,7 @@ class ComplexSyncTests: XCTestCase {
     func testNullifyingLinkBetweenSyncs() {
         let expectation = self.expectation(description: "Initial sync succeeded")
 
-        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> OHHTTPStubsResponse in
+        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> HTTPStubsResponse in
             let stubPath = OHPathForFile("nullified-link-initial.json", ComplexSyncTests.self)
             return fixture(filePath: stubPath!, headers: ["Content-Type": "application/json"])
         }.name = "Initial sync stub"
@@ -281,18 +281,18 @@ class ComplexSyncTests: XCTestCase {
                     expectation.fulfill()
                 }
 
-            case .error(let error):
+            case .failure(let error):
                 XCTFail("\(error)")
                 expectation.fulfill()
             }
         }
         waitForExpectations(timeout: 10.0, handler: nil)
-        OHHTTPStubs.removeAllStubs()
+        HTTPStubs.removeAllStubs()
 
         // ============================NEXT SYNC==================================================
         let nextExpectation = self.expectation(description: "Next sync expectation")
 
-        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> OHHTTPStubsResponse in
+        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> HTTPStubsResponse in
             let stubPath = OHPathForFile("nullified-link-next.json", ComplexSyncTests.self)
             return fixture(filePath: stubPath!, headers: ["Content-Type": "application/json"])
         }.name = "Next sync: updated value."
@@ -310,7 +310,7 @@ class ComplexSyncTests: XCTestCase {
                     }
                     nextExpectation.fulfill()
                 }
-            case .error(let error):
+            case .failure(let error):
                 XCTFail("\(error)")
                 nextExpectation.fulfill()
             }
@@ -323,7 +323,7 @@ class ComplexSyncTests: XCTestCase {
     func testDeletingEntryForOneLocaleDeletesCoreDataEntityBetweenSyncs() {
         let expectation = self.expectation(description: "Initial sync succeeded")
 
-        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> OHHTTPStubsResponse in
+        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> HTTPStubsResponse in
             let stubPath = OHPathForFile("deleted-entry-initial.json", ComplexSyncTests.self)
             return fixture(filePath: stubPath!, headers: ["Content-Type": "application/json"])
             }.name = "Initial sync stub"
@@ -350,18 +350,18 @@ class ComplexSyncTests: XCTestCase {
                     expectation.fulfill()
                 }
 
-            case .error(let error):
+            case .failure(let error):
                 XCTFail("\(error)")
                 expectation.fulfill()
             }
         }
         waitForExpectations(timeout: 10.0, handler: nil)
-        OHHTTPStubs.removeAllStubs()
+        HTTPStubs.removeAllStubs()
 
         // ============================NEXT SYNC==================================================
         let nextExpectation = self.expectation(description: "Next sync expectation")
 
-        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> OHHTTPStubsResponse in
+        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> HTTPStubsResponse in
             let stubPath = OHPathForFile("deleted-entry-next.json", ComplexSyncTests.self)
             return fixture(filePath: stubPath!, headers: ["Content-Type": "application/json"])
             }.name = "Next sync: updated value."
@@ -380,7 +380,7 @@ class ComplexSyncTests: XCTestCase {
                     }
                     nextExpectation.fulfill()
                 }
-            case .error(let error):
+            case .failure(let error):
                 XCTFail("\(error)")
                 nextExpectation.fulfill()
             }
@@ -392,7 +392,7 @@ class ComplexSyncTests: XCTestCase {
     func testDeletingEntryForMultiLocaleDeletesCoreDataEntitiesBetweenSyncs() {
         let expectation = self.expectation(description: "Initial sync succeeded")
 
-        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> OHHTTPStubsResponse in
+        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> HTTPStubsResponse in
             let stubPath = OHPathForFile("deleted-entry-initial.json", ComplexSyncTests.self)
             return fixture(filePath: stubPath!, headers: ["Content-Type": "application/json"])
             }.name = "Initial sync stub"
@@ -424,18 +424,18 @@ class ComplexSyncTests: XCTestCase {
                     expectation.fulfill()
                 }
 
-            case .error(let error):
+            case .failure(let error):
                 XCTFail("\(error)")
                 expectation.fulfill()
             }
         }
         waitForExpectations(timeout: 10.0, handler: nil)
-        OHHTTPStubs.removeAllStubs()
+        HTTPStubs.removeAllStubs()
 
         // ============================NEXT SYNC==================================================
         let nextExpectation = self.expectation(description: "Next sync expectation")
 
-        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> OHHTTPStubsResponse in
+        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> HTTPStubsResponse in
             let stubPath = OHPathForFile("deleted-entry-next.json", ComplexSyncTests.self)
             return fixture(filePath: stubPath!, headers: ["Content-Type": "application/json"])
             }.name = "Next sync: updated value."
@@ -454,7 +454,7 @@ class ComplexSyncTests: XCTestCase {
                     }
                     nextExpectation.fulfill()
                 }
-            case .error(let error):
+            case .failure(let error):
                 XCTFail("\(error)")
                 nextExpectation.fulfill()
             }
@@ -467,7 +467,7 @@ class ComplexSyncTests: XCTestCase {
     func testDeletingAssetForOneLocaleDeletesCoreDataEntityBetweenSyncs() {
         let expectation = self.expectation(description: "Initial sync succeeded")
 
-        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> OHHTTPStubsResponse in
+        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> HTTPStubsResponse in
             let stubPath = OHPathForFile("deleted-asset-initial.json", ComplexSyncTests.self)
             return fixture(filePath: stubPath!, headers: ["Content-Type": "application/json"])
             }.name = "Initial sync stub"
@@ -494,18 +494,18 @@ class ComplexSyncTests: XCTestCase {
                     expectation.fulfill()
                 }
 
-            case .error(let error):
+            case .failure(let error):
                 XCTFail("\(error)")
                 expectation.fulfill()
             }
         }
         waitForExpectations(timeout: 10.0, handler: nil)
-        OHHTTPStubs.removeAllStubs()
+        HTTPStubs.removeAllStubs()
 
         // ============================NEXT SYNC==================================================
         let nextExpectation = self.expectation(description: "Next sync expectation")
 
-        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> OHHTTPStubsResponse in
+        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> HTTPStubsResponse in
             let stubPath = OHPathForFile("deleted-asset-next.json", ComplexSyncTests.self)
             return fixture(filePath: stubPath!, headers: ["Content-Type": "application/json"])
             }.name = "Next sync: updated value."
@@ -524,7 +524,7 @@ class ComplexSyncTests: XCTestCase {
                     }
                     nextExpectation.fulfill()
                 }
-            case .error(let error):
+            case .failure(let error):
                 XCTFail("\(error)")
                 nextExpectation.fulfill()
             }
@@ -536,7 +536,7 @@ class ComplexSyncTests: XCTestCase {
     func testDeserializingLocation() {
         let expectation = self.expectation(description: "Initial sync succeeded")
 
-        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> OHHTTPStubsResponse in
+        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> HTTPStubsResponse in
             let stubPath = OHPathForFile("location.json", ComplexSyncTests.self)
             return fixture(filePath: stubPath!, headers: ["Content-Type": "application/json"])
             }.name = "Initial sync stub"
@@ -567,7 +567,7 @@ class ComplexSyncTests: XCTestCase {
                     expectation.fulfill()
                 }
 
-            case .error(let error):
+            case .failure(let error):
                 XCTFail("\(error)")
                 expectation.fulfill()
             }
@@ -579,7 +579,7 @@ class ComplexSyncTests: XCTestCase {
 
         let expectation = self.expectation(description: "Initial sync succeeded")
 
-        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> OHHTTPStubsResponse in
+        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> HTTPStubsResponse in
             let stubPath = OHPathForFile("video-asset.json", ComplexSyncTests.self)
             return fixture(filePath: stubPath!, headers: ["Content-Type": "application/json"])
             }.name = "Initial sync stub"
@@ -606,7 +606,7 @@ class ComplexSyncTests: XCTestCase {
                     expectation.fulfill()
                 }
 
-            case .error(let error):
+            case .failure(let error):
                 XCTFail("\(error)")
                 expectation.fulfill()
             }
@@ -618,7 +618,7 @@ class ComplexSyncTests: XCTestCase {
     func testEntriesLinkingToSameLinkCanResolveLinks() {
         let expectation = self.expectation(description: "Two entries can resolve links to the same asset")
 
-        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> OHHTTPStubsResponse in
+        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> HTTPStubsResponse in
             let stubPath = OHPathForFile("shared-linked-asset.json", ComplexSyncTests.self)
             return fixture(filePath: stubPath!, headers: ["Content-Type": "application/json"])
             }.name = "Initial sync stub"
@@ -650,7 +650,7 @@ class ComplexSyncTests: XCTestCase {
                 } else {
                     XCTFail("There should be a linked asset")
                 }
-            case .error(let error):
+            case .failure(let error):
                 XCTFail("Should not throw an error \(error)")
             }
             expectation.fulfill()
@@ -662,7 +662,7 @@ class ComplexSyncTests: XCTestCase {
     func testResolvingArrayOfLinkedAssets() {
         let expectation = self.expectation(description: "Can resolve relationship to linked assets array")
 
-        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> OHHTTPStubsResponse in
+        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> HTTPStubsResponse in
             let stubPath = OHPathForFile("linked-assets-array.json", ComplexSyncTests.self)
             return fixture(filePath: stubPath!, headers: ["Content-Type": "application/json"])
             }.name = "Initial sync stub"
@@ -682,7 +682,7 @@ class ComplexSyncTests: XCTestCase {
                 } else {
                     XCTFail("There should be a linked assets set")
                 }
-            case .error(let error):
+            case .failure(let error):
                 XCTFail("Should not throw an error \(error)")
             }
             expectation.fulfill()
@@ -694,7 +694,7 @@ class ComplexSyncTests: XCTestCase {
         // TODO:
         let expectation = self.expectation(description: "Can deserialize linked strings array")
 
-        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> OHHTTPStubsResponse in
+        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> HTTPStubsResponse in
             let stubPath = OHPathForFile("symbols-array.json", ComplexSyncTests.self)
             return fixture(filePath: stubPath!, headers: ["Content-Type": "application/json"])
             }.name = "Initial sync stub"
@@ -714,7 +714,7 @@ class ComplexSyncTests: XCTestCase {
                 } else {
                     XCTFail("There should be an array of linked strings")
                 }
-            case .error(let error):
+            case .failure(let error):
                 XCTFail("Should not throw an error \(error)")
             }
             expectation.fulfill()
@@ -728,7 +728,7 @@ class ComplexSyncTests: XCTestCase {
 
         stub(
             condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync"),
-            response: { request -> OHHTTPStubsResponse in
+            response: { request -> HTTPStubsResponse in
                 let urlString = request.url!.absoluteString
                 let queryItems = URLComponents(string: urlString)!.queryItems!
                 for queryItem in queryItems {
@@ -750,7 +750,7 @@ class ComplexSyncTests: XCTestCase {
                     }
                 }
                 XCTFail("Unexpected request cannot be stubbed!")
-                return OHHTTPStubsResponse(
+                return HTTPStubsResponse(
                     error: NSError(domain: "ComplexSyncTests", code: 10, userInfo: nil)
                 )
             }
@@ -777,7 +777,7 @@ class ComplexSyncTests: XCTestCase {
                     }
                     expectation.fulfill()
                 }
-            case .error(let error):
+            case .failure(let error):
                 XCTFail("\(error)")
                 expectation.fulfill()
             }

@@ -30,7 +30,7 @@ class UnresolvedRelationshipCacheTests: XCTestCase {
 
     // Before each test.
     override func setUp() {
-        OHHTTPStubs.removeAllStubs()
+        HTTPStubs.removeAllStubs()
 
         let persistenceModel = PersistenceModel(spaceType: ComplexSyncInfo.self, assetType: ComplexAsset.self, entryTypes: [SingleRecord.self, Link.self])
 
@@ -45,7 +45,7 @@ class UnresolvedRelationshipCacheTests: XCTestCase {
 
     // After each test.
     override func tearDown() {
-        OHHTTPStubs.removeAllStubs()
+        HTTPStubs.removeAllStubs()
     }
 
     func testRelationshipsAreCachedMidSync() {
@@ -53,7 +53,7 @@ class UnresolvedRelationshipCacheTests: XCTestCase {
 
         let expectation = self.expectation(description: "Initial sync succeeded")
 
-        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> OHHTTPStubsResponse in
+        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> HTTPStubsResponse in
             let stubPath = OHPathForFile("unresolvable-links.json", UnresolvedRelationshipCacheTests.self)
             return fixture(filePath: stubPath!, headers: ["Content-Type": "application/json"])
 
@@ -65,19 +65,19 @@ class UnresolvedRelationshipCacheTests: XCTestCase {
                 XCTAssertFalse(self.syncManager.cachedUnresolvedRelationships!.isEmpty)
                 XCTAssertEqual((self.syncManager.cachedUnresolvedRelationships?["14XouHzspI44uKCcMicWUY_en-US"])?["linkField"] as? String, "2XYdAPiR0I6SMAGiCOEukU_en-US")
                 syncSpace = space
-            case .error(let error):
+            case .failure(let error):
                 XCTFail("\(error)")
 
             }
             expectation.fulfill()
         }
         waitForExpectations(timeout: 10.0, handler: nil)
-        OHHTTPStubs.removeAllStubs()
+        HTTPStubs.removeAllStubs()
 
         // ============================NEXT SYNC==================================================
         let nextExpectation = self.expectation(description: "Next sync clears the cached JSON after relationships are resolved")
 
-        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> OHHTTPStubsResponse in
+        stub(condition: isPath("/spaces/smf0sqiu0c5s/environments/master/sync")) { request -> HTTPStubsResponse in
             let stubPath = OHPathForFile("now-resolvable-relationships.json", UnresolvedRelationshipCacheTests.self)
             return fixture(filePath: stubPath!, headers: ["Content-Type": "application/json"])
         }.name = "Next sync: relationships resolved."
@@ -86,7 +86,7 @@ class UnresolvedRelationshipCacheTests: XCTestCase {
             switch result {
             case .success:
                 XCTAssertNil(self.syncManager.cachedUnresolvedRelationships)
-            case .error(let error):
+            case .failure(let error):
                 XCTFail("\(error)")
 
             }
