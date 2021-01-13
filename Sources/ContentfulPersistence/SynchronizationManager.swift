@@ -591,6 +591,10 @@ public class SynchronizationManager: PersistenceIntegration {
         for (fieldName, propertyName) in mapping {
             var fieldValue = entry.fields[fieldName]
 
+            if let richText = fieldValue as? RichTextDocument {
+                fieldValue = NSKeyedArchiver.archivedData(withRootObject: richText)
+            }
+
             let attributeType = persistable.entity.attributesByName[fieldName]?.attributeType
             // handle symbol arrays as NSData if field is of type .binaryDataAttributeType, otherwise use .transformableAttributeType
             if attributeType == .binaryDataAttributeType, let array = fieldValue as? [NSCoding] {
