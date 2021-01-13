@@ -603,6 +603,12 @@ public class SynchronizationManager: PersistenceIntegration {
             if attributeType == .dateAttributeType, let date = getDate(fieldValue as? String) {
                 fieldValue = date
             }
+
+            // non-broken handling of symbol arrays
+            if let array = fieldValue as? [Any] {
+                fieldValue = NSKeyedArchiver.archivedData(withRootObject: array)
+            }
+
             persistable.setValue(fieldValue, forKey: propertyName)
         }
     }
